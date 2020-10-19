@@ -1,3 +1,10 @@
+/*
+ * @author: Adonis Kahila
+ * @version: 1.0
+ * @class GuiView
+ * This Class Contains only code that has to do with the user interface
+ * */
+
 package client.clientView;
 
 import java.io.File;
@@ -157,14 +164,13 @@ public class GuiView {
 		secondPane.setPadding(new Insets(40, 40, 40, 40));
 		TextArea ta = new TextArea();
 		sceneP2 = new Scene(secondPane, 1500, 800);
-		String options[] = {"GrayScale", "Rotate", "Erosion", "Dilation", "Crop"};
 		connected = false;
 		if ((connected = ctr.connectServer())) {
 			ta.appendText("Connected to the server\n");
 		}
 		
 		imageView = new ImageView(image);
-//		//setting button properties
+		//setting button properties
 		redo.setPrefWidth(300);
 		redo.setPrefHeight(50);
 		undo.setPrefWidth(300);
@@ -203,6 +209,7 @@ public class GuiView {
 		save.setPrefWidth(300);
 		save.setPrefHeight(50);
 		
+//		setting the margin on each button
 		GridPane.setMargin(canny, new Insets(0, 100, 10, 0));
 		GridPane.setMargin(save, new Insets(0, 100, 10, 0));
 		GridPane.setMargin(upload, new Insets(0, 100, 10, 0));
@@ -218,6 +225,7 @@ public class GuiView {
 		GridPane.setMargin(undo, new Insets(0, 0, 10, 0));
 		GridPane.setMargin(imageView, new Insets(0, 0, 10, 0));
 		
+		//style for each button
 		redo.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: Black;-fx-background-radius: 50px;");
 		undo.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: Black;-fx-background-radius: 50px;");
 		save.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: Black;-fx-background-radius: 50px;");
@@ -279,6 +287,24 @@ public class GuiView {
 			alert.setTitle("Success");
 			alert.setContentText("Your Image Has Been Saved To your Root Directory");
 			alert.show();
+		});undo.setOnAction(value ->{
+			FileInputStream inputstream;
+			try {
+				inputstream = new FileInputStream(new File("old.jpg"));
+				image = new Image(inputstream ,300,260,false,true);
+				ImageSelected();
+			} catch (FileNotFoundException e) {
+				System.out.println("changes not yet made");
+			}
+		});redo.setOnAction(value ->{
+			FileInputStream inputstream;
+			try {
+				inputstream = new FileInputStream(new File("output.jpg"));
+				image = new Image(inputstream ,300,260,false,true);
+				ImageSelected();
+			} catch (FileNotFoundException e) {
+				System.out.println("changes not yet made");
+			}
 		});
 
 		secondPane.setLeft(left);

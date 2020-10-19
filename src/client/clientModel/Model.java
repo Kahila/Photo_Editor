@@ -1,12 +1,17 @@
+/*
+ * @author: Adonis Kahila
+ * @version: 1.0
+ * @class Model
+ * This Class Contains only code that has to do with connecting to the server and manipulation of data
+ * This Class does not know anything about the GUIView and only communicates with the Controller
+ * */
+
 package client.clientModel;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -19,9 +24,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Base64;
-
 import javax.imageio.ImageIO;
-
 import javafx.scene.image.Image;
 
 //this class will be everything server related
@@ -36,6 +39,7 @@ public class Model {
 	private Image gray = null;
 	private boolean connected = false;
 	private boolean check = true;
+	private byte[] bytes = null;
 	
 	//method for connecting client to server
 	private void connect() {
@@ -48,8 +52,7 @@ public class Model {
 			dout = new DataOutputStream(out);
 			bout = new BufferedOutputStream(out);
 			connected = true;
-		}catch(UnknownHostException e)
-		{
+		}catch(UnknownHostException e){
 			connected = false;
 		}catch(IOException e)
 		{
@@ -62,13 +65,14 @@ public class Model {
 		String encoded_file = null;
 		
 		if (check == false) {
+			undo(bytes);
 			img_file = new File("output.jpg");
 		}else
 			check = false;
 		
 		try {
 			FileInputStream fis = new FileInputStream(img_file);
-			byte[] bytes = new byte[(int)img_file.length()];
+			bytes = new byte[(int)img_file.length()];
 			fis.read(bytes);
 			
 			encoded_file = new String(Base64.getEncoder().encodeToString(bytes));
@@ -76,17 +80,18 @@ public class Model {
 			
 			dout.write(("POST " + qryString + " HTTP/1.1\r\n").getBytes());
 			dout.write(("Content-Type: "+"application/text\r\n").getBytes());
+			//passing the query string to the server
 			dout.write(("Content-Length: "+encoded_file.length()+"\r\n").getBytes());
 			dout.write(("\r\n").getBytes());
 			dout.write(bytesToSend);
 			dout.flush();
 			dout.write(("\r\n").getBytes());
 			
+			@SuppressWarnings("unused")
 			String response = "";
 			String line = "";
 			
-			while(!(line = br.readLine()).equals(""))
-			{
+			while(!(line = br.readLine()).equals("")){
 				response += line+"\n";
 			}
 			
@@ -98,12 +103,10 @@ public class Model {
 			System.out.println(imgData);
 			
 			String base64Str = imgData.substring(imgData.indexOf('\'')+1,imgData.lastIndexOf('}')-1);
-			System.out.println(base64Str);
 			byte[] decodedStr = Base64.getDecoder().decode(base64Str);
 			save(decodedStr);
 			
 			gray = new Image(new ByteArrayInputStream(decodedStr), 300, 260, false,true);
-			System.out.println(decodedStr);
 			fis.close();
 			bout.close();
 			din.close();
@@ -116,14 +119,24 @@ public class Model {
 	
 	//save image
 	private void save(byte[] data) {
-		BufferedImage bImage;
 		try {
 			ByteArrayInputStream bis = new ByteArrayInputStream(data);
 			BufferedImage bImage2 = ImageIO.read(bis);
 			ImageIO.write(bImage2, "jpg", new File("output.jpg") );
 			System.out.println("image created");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	//method for undoing changes
+	private void undo(byte[] data) {
+		try {
+			ByteArrayInputStream bis = new ByteArrayInputStream(data);
+			BufferedImage bImage2 = ImageIO.read(bis);
+			ImageIO.write(bImage2, "jpg", new File("old.jpg") );
+			System.out.println("image created");
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
